@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.env.gpu
+output/
+*.mp4
+*.wav
+*.log
+models/wav2lip/*.pth
+shared/
