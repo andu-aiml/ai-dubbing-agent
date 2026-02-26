@@ -100,3 +100,53 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Service 4: FastAPI Backend Gateway
+  # Python 3.10 | Port 8000
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: dubbing-backend:latest
+    container_name: dubbing_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - shared_data:/shared
+    environment:
+      - ASR_URL=http://asr:8001
+      - TTS_URL=http://tts:8002
+      - W2L_URL=http://wav2lip:8003
+    networks:
+      - dubbing_net
+    depends_on:
+      - asr
+      - tts
+      - wav2lip
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Service 5: React Frontend (nginx in production)
+  # Node 18 | Port 5173
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: dubbing-frontend:latest
+    container_name: dubbing_frontend
+    ports:
+      - "5173:80"
+    networks:
+      - dubbing_net
+    depends_on:
+      - backend
+    restart: unless-stopped
